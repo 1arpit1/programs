@@ -23,7 +23,6 @@ public class ShellTest {
 	private String serverName;
 	private Session session;
 	private ChannelShell channel;
-	private StringWriter writer;
 
 	java.util.Properties config = new java.util.Properties();
 
@@ -35,12 +34,7 @@ public class ShellTest {
 		this.serverName = host;
 		this.password = pass;
 		sch = new JSch();
-		session = sch.getSession(this.username, this.serverName, this.port);
-		session.setPassword(this.password);
 		config.put("StrictHostKeyChecking", "no");
-		session.setConfig(config);
-		session.setServerAliveInterval(10000000);
-		session.connect();
 
 	}
 
@@ -57,9 +51,17 @@ public class ShellTest {
 				session.connect();
 				channel = (ChannelShell) session.openChannel("shell");
 			}
+		} else if (session == null) {
+			session = sch.getSession(this.username, this.serverName, this.port);
+			session.setPassword(this.password);
+			session.setConfig(config);
+			session.setServerAliveInterval(10000000);
+			session.connect();
+			channel = (ChannelShell) session.openChannel("shell");
 		} else if (channel == null) {
 			channel = (ChannelShell) session.openChannel("shell");
 		}
+
 		channel.setOutputStream(System.out, true);
 		return channel;
 
@@ -71,17 +73,13 @@ public class ShellTest {
 		channel.connect();
 	}
 
-	private void executeCommand(String command) throws Exception {
-		System.out.println("executing command -- " + command);
-
-	}
-
 	public static void main(String[] args) throws Exception {
 		int port = 0;
 		ShellTest test = new ShellTest("user", "pass", "server", port);
 		InputStream stream = ClassLoader
 				.getSystemResourceAsStream("command.txt");
 		test.setInputStream(stream, test.getChannel());
+	   
 
 	}
 
